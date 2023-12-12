@@ -1,23 +1,20 @@
-// models.js
 const mongoose = require('mongoose');
 
-const todoSchema = new mongoose.Schema({
-  task: String,
-  completed: Boolean,
-  ydoc: Object, // Add a field to store Yjs document
+const csvFile = new mongoose.Schema({
+    userId: String,
+    fileName: String,
+    fileId: String
 });
 
 const userSchema = new mongoose.Schema({
-  username: String,
-  email: String,
-  // other fields...
+    username: String,
+    email: String,
 });
 
-const Todo = mongoose.model('Todo', todoSchema);
 const User = mongoose.model('User', userSchema);
+const csvFileModel = mongoose.model('csvFile', csvFile);
 
 module.exports = {
-  Todo,
-  User,
-  // add more models as needed
+    csvFileModel,
+    User,
 };
