@@ -30,6 +30,7 @@ const addDummyData = async () => {
 
     return { message: 'Dummy data added successfully', users: insertedUsers };
   } catch (error) {
+    console.log(error)
     throw new Error('Error adding dummy data');
   }
 };

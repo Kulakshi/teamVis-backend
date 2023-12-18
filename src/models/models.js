@@ -1,10 +1,15 @@
 const mongoose = require('mongoose');
 
 const Project = new mongoose.Schema({
-    userId: String,
+    ownerId: String,
     projectName: String,
     fileName: String,
     fileId: String,
+    users:[
+    {
+      type: String,
+    },
+  ]
 });
 
 const chart = new mongoose.Schema({

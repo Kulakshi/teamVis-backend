@@ -8,8 +8,8 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 
-// mongoose.connect('mongodb://localhost:27017/mydatabase', {
-mongoose.connect('mongodb+srv://kulakshif:jV4BcFwFGL9hx3Hy@cluster0.ybbdiaj.mongodb.net/?retryWrites=true&w=majority/test', {
+mongoose.connect('mongodb://localhost:27017/mydatabase', {
+// mongoose.connect('mongodb+srv://kulakshif:jV4BcFwFGL9hx3Hy@cluster0.ybbdiaj.mongodb.net/?retryWrites=true&w=majority/test', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });
