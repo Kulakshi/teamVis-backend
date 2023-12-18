@@ -1,4 +1,4 @@
-const {csvFileModel} = require('../models/models');
+const {ProjectModel, chartModel} = require('../models/models');
 const fs = require("fs");
 const path = require('path');
 const multer = require('multer');
@@ -19,27 +19,34 @@ const storageCSV = multer.diskStorage({
         cb(null, userFolder);
     },
     filename: async (req, file, cb) => {
-        const fileName = Date.now() + '_' + file.originalname;
+        const {userId, name} = req.body;
+        const fileName = userId + '_' + name + '_' + file.originalname;
         cb(null, fileName);
-
-        // Save entry to MongoDB
-        const userId = req.body.userId;
-        const newCsvEntry = new csvFileModel({
-            userId: userId,
-            fileName: fileName,
-        });
-
-        const output = await newCsvEntry.save();
-        console.log(output)
     },
 });
 
 const uploadCSV = multer({storage: storageCSV});
 
-const getCsvFilesByUserId = async (userId) => {
+const createNewProject = async (userId, projectName, file) => {
     try {
-        const files = await csvFileModel.find({userId: userId}, 'fileName');
-        return files.map(file => file.fileName);
+        const fileName = userId + '_' + projectName + '_' + file.originalname;
+        const newProject = new ProjectModel({
+            userId: userId,
+            fileName: fileName,
+            projectName: projectName,
+        });
+        const output = await newProject.save();
+        return output
+    } catch (error) {
+        console.error('Error fetching CSV files:', error);
+        throw error;
+    }
+};
+
+const getProjectsByUserId = async (userId) => {
+    try {
+        const projects = await ProjectModel.find({userId: userId});
+        return projects;
     } catch (error) {
         console.error('Error fetching CSV files:', error);
         throw error;
@@ -64,18 +71,15 @@ const readCsvContent = (userId, fileName) => {
 };
 
 const getCsvFile = async (userId, fileId) => {
-    console.log(fileId)
     try {
         const fileObjectId = new mongoose.Types.ObjectId(fileId)
-        const file = await csvFileModel.findOne({_id: fileObjectId});
+        const file = await ProjectModel.findOne({_id: fileObjectId});
 
         if (!file) {
             throw new Error('CSV file not found for the provided userId and fileId.');
         }
-        console.log(file)
-        // Assuming you have a function to read the CSV content
-        const csvContent = await readCsvContent(userId, file.fileName);
 
+        const csvContent = await readCsvContent(userId, file.fileName);
         return {
             fileId,
             fileName: file.fileName,
@@ -86,12 +90,82 @@ const getCsvFile = async (userId, fileId) => {
         throw error;
     }
 };
+const createChart = async (userId, projectId, title, x, y, chartType = "Line", isLocked = false) => {
+    try {
+        const projectObjectId = new mongoose.Types.ObjectId(projectId)
+        const project = await ProjectModel.findOne({_id: projectObjectId});
 
-module.exports = getCsvFilesByUserId;
+        if (project) {
+            const csvData = await readCsvContent(userId, project.fileName);
+            if (csvData && csvData.length > 0 && Object.keys(csvData[0]).includes(x) && Object.keys(csvData[0]).includes(y)) {
+
+                const existingChart = await chartModel.findOne({projectId, title, ownerId: userId});
+
+                if (existingChart) {
+                    const updatedChart = await chartModel.findOneAndUpdate(
+                        {projectId, title, ownerId: userId},
+                        {
+                            $set: {
+                                chartType: chartType,
+                                x: x,
+                                y: y,
+                                isLocked: isLocked
+                            }
+                        },
+                        {new: true}
+                    );
+
+                    return updatedChart;
+                } else {
+                    const newChartEntry = new chartModel({
+                        projectId: projectId,
+                        ownerId: userId,
+                        title: title || "untitled",
+                        chartType: chartType,
+                        x: x,
+                        y: y,
+                        isLocked: isLocked
+                    });
+                    const output = await newChartEntry.save();
+                    return output;
+                }
+
+            }
+        } else {
+            return "invalid data";
+
+        }
+    } catch (error) {
+        console.error('Error fetching CSV file:', error);
+        throw error;
+    }
+}
+
+const getCharts = async (userId, projectId) => {
+    try {
+        console.log(userId, projectId)
+        const projObjectId = new mongoose.Types.ObjectId(projectId)
+        const project = await ProjectModel.findOne({_id: projObjectId, userId});
+
+        if (!project) {
+            throw new Error('Project not found for the provided userId.');
+        }else{
+            const charts = await chartModel.find({ownerId:userId, projectId});
+            console.log(charts)
+            return charts;
+        }
+    } catch (error) {
+        console.error('Error fetching CSV file:', error);
+        throw error;
+    }
+};
 
 
 module.exports = {
+    createNewProject,
     uploadCSV,
-    getCsvFilesByUserId,
-    getCsvFile
+    getProjectsByUserId,
+    getCsvFile,
+    createChart,
+    getCharts
 };

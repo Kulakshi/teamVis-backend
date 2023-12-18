@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dashboard = require('./src/routes/dashboard');
 const users = require('./src/routes/users');
-const {addDummyData} = require("./src/services/dummyDataService");
+const {clearAllData, addDummyData} = require("./src/services/dummyDataService");
 const cors = require('cors');
 
 const app = express();
@@ -19,6 +19,7 @@ app.use(express.json());
 app.use('/api/dashboard/', dashboard);
 app.use('/api/users/', users);
 
+// clearAllData()
 // addDummyData()
 
 

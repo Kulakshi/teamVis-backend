@@ -1,9 +1,20 @@
 const mongoose = require('mongoose');
 
-const csvFile = new mongoose.Schema({
+const Project = new mongoose.Schema({
     userId: String,
+    projectName: String,
     fileName: String,
-    fileId: String
+    fileId: String,
+});
+
+const chart = new mongoose.Schema({
+    projectId: String,
+    ownerId: String,
+    title: String,
+    chartType: String,
+    x: String,
+    y: String,
+    isLocked: Boolean
 });
 
 const userSchema = new mongoose.Schema({
@@ -12,9 +23,11 @@ const userSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model('User', userSchema);
-const csvFileModel = mongoose.model('csvFile', csvFile);
+const ProjectModel = mongoose.model('Project', Project);
+const chartModel = mongoose.model('chart', chart);
 
 module.exports = {
-    csvFileModel,
+    ProjectModel,
     User,
+    chartModel,
 };

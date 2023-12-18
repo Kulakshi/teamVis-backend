@@ -1,6 +1,24 @@
-// services/todoService.js
-const { Todo, User} = require('../models/models');
+const mongoose = require('mongoose');
+const { User} = require('../models/models');
 
+const clearAllData = async () => {
+  try {
+    const modelNames = mongoose.modelNames();
+
+    for (const modelName of modelNames) {
+      const Model = mongoose.model(modelName);
+      const result = await Model.deleteMany({});
+      console.log(`Cleared ${result.deletedCount} documents from the ${modelName} collection.`);
+    }
+
+    console.log('Cleared all data in the database.');
+  } catch (error) {
+    console.error('Error clearing data:', error);
+  } finally {
+    // Close the MongoDB connection if needed (optional)
+    // mongoose.connection.close();
+  }
+};
 const addDummyData = async () => {
   try {
     const dummyUsers = [
@@ -17,5 +35,6 @@ const addDummyData = async () => {
 };
 
 module.exports = {
+  clearAllData,
   addDummyData,
 };
