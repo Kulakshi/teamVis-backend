@@ -22,8 +22,11 @@ const clearAllData = async () => {
 const addDummyData = async () => {
   try {
     const dummyUsers = [
-      { username: 'user1', email: 'user1@gamil.com' },
-      { username: 'user2', email: 'user2@gmail.com' },
+      { username: 'Bob', email: 'user1@gamil.com' },
+      { username: 'Ann', email: 'user2@gmail.com' },
+      { username: 'Mangfei', email: 'user3@gmail.com' },
+      { username: 'Mike', email: 'user4@gmail.com' },
+      { username: 'Tailuo', email: 'user5@gmail.com' },
     ];
 
     const insertedUsers = await User.insertMany(dummyUsers);
