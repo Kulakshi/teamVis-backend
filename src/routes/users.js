@@ -19,12 +19,13 @@ router.post('/login', async (req, res) => {
     }
 });
 
-router.get('/all', async (req, res) => {
+router.get('/all/:userId', async (req, res) => {
   // Get the 'search' query parameter from the request
+    const userId = req.params.userId;
   const searchValue = req.query.search;
 
     try {
-        const users = await getAllUsers();
+        const users = await getAllUsers(userId);
         res.status(200).json({users});
     } catch (error) {
         res.status(500).json({error: 'Internal Server Error'});

@@ -14,9 +14,9 @@ const login = async (username) => {
 
 
 
-const getAllUsers = async () => {
+const getAllUsers = async (userId) => {
   try {
-    const users = await User.find();
+    const users = await User.find({ username: { $ne: userId } });
     return users;
   } catch (error) {
     console.error('Error searching users:', error);
