@@ -27,9 +27,9 @@ router.get('/get_files/:userId', async (req, res) => {
 
 
 router.get('/get_file', async (req, res) => {
-    const {userId, fileId} = req.query;
+    const {userId, fileId, isOwner} = req.query;
     try {
-        const csvFiles = await getCsvFile(userId, fileId);
+        const csvFiles = await getCsvFile(userId, fileId, isOwner);
         res.status(200).json({csvFiles});
     } catch (error) {
         res.status(500).json({error: 'Internal Server Error'});
@@ -38,9 +38,9 @@ router.get('/get_file', async (req, res) => {
 
 
 router.post('/save_chart', async (req, res) => {
-  const {userId, projectId, x, y, title, chartType, isLocked } = req.body;
+  const {userId, projectId, x, y, title, chartType, isLocked, isOwner } = req.body;
     try {
-        const chart = await createChart(userId, projectId, title, x, y, chartType, isLocked);
+        const chart = await createChart(userId, projectId, title, x, y, chartType, isLocked, isOwner);
         res.status(200).json({chart});
     } catch (error) {
         res.status(500).json({error: 'Internal Server Error'});
@@ -49,10 +49,10 @@ router.post('/save_chart', async (req, res) => {
 
 
 router.get('/get_charts', async (req, res) => {
-    const {userId, projectId} = req.query;
+    const {userId, projectId, isOwner} = req.query;
 
     try {
-        const charts = await getCharts(userId, projectId);
+        const charts = await getCharts(userId, projectId, isOwner);
         res.status(200).json({charts});
     } catch (error) {
         res.status(500).json({error: 'Internal Server Error'});

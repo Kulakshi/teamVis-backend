@@ -46,18 +46,14 @@ const createNewProject = async (userId, projectName, file) => {
 const addUser = async (ownerId, projectId, userId) => {
     try {
         const projectObjectId = new mongoose.Types.ObjectId(projectId)
-        const existingProject = await ProjectModel.findOne({ownerId, _id:projectObjectId});
-
-        console.log(ownerId, projectId, userId)
-        console.log(existingProject)
+        const existingProject = await ProjectModel.findOne({ownerId, _id: projectObjectId});
 
         if (existingProject) {
             const updatedProject = await ProjectModel.findOneAndUpdate(
-                {ownerId,  _id:projectObjectId},
+                {ownerId, _id: projectObjectId},
                 {$addToSet: {users: userId}},
                 {new: true}
             );
-        console.log(updatedProject)
             return updatedProject
         } else {
             throw new Error('Project not found for the provided userId.');
@@ -74,14 +70,13 @@ const getProjectsByUserId = async (ownerId) => {
         let myProjects = [];
         myProjects = await ProjectModel.find({ownerId});
 
-         const user = await User.findOne({ username: ownerId });
-         let sharedProjects;
-         if(user){
-             console.log("ownerId =", ownerId, "user=",user)
-             const userId = user._id
-          sharedProjects = await ProjectModel.find({users: userId.toString()});
-         }
-         const projects = myProjects.concat(sharedProjects)
+        const user = await User.findOne({username: ownerId});
+        let sharedProjects;
+        if (user) {
+            const userId = user._id
+            sharedProjects = await ProjectModel.find({users: userId.toString()});
+        }
+        const projects = myProjects.concat(sharedProjects)
         return projects;
     } catch (error) {
         console.error('Error fetching CSV files:', error);
@@ -106,19 +101,20 @@ const readCsvContent = (userId, fileName) => {
     }
 };
 
-const getCsvFile = async (userId, fileId) => {
+const getCsvFile = async (userId, projectId, isOwner = false) => {
     try {
-        const fileObjectId = new mongoose.Types.ObjectId(fileId)
-        const file = await ProjectModel.findOne({_id: fileObjectId});
+        const projectObjectId = new mongoose.Types.ObjectId(projectId)
+        const project = await ProjectModel.findOne({_id: projectObjectId});
 
-        if (!file) {
-            throw new Error('CSV file not found for the provided userId and fileId.');
+        if (!project) {
+            throw new Error('Project not found for the provided Id.');
         }
 
-        const csvContent = await readCsvContent(userId, file.fileName);
+        let ownerId = await getProjectOwner(userId, projectId, isOwner)
+        const csvContent = await readCsvContent(ownerId, project.fileName);
         return {
-            fileId,
-            fileName: file.fileName,
+            projectId,
+            fileName: project.fileName,
             csvContent,
         };
     } catch (error) {
@@ -126,20 +122,23 @@ const getCsvFile = async (userId, fileId) => {
         throw error;
     }
 };
-const createChart = async (userId, projectId, title, x, y, chartType = "Line", isLocked = false) => {
+
+
+const createChart = async (userId, projectId, title, x, y, chartType = "Line", isLocked = false, isOwner = false) => {
     try {
         const projectObjectId = new mongoose.Types.ObjectId(projectId)
         const project = await ProjectModel.findOne({_id: projectObjectId});
 
         if (project) {
-            const csvData = await readCsvContent(userId, project.fileName);
+            let ownerId = await getProjectOwner(userId, projectId, isOwner)
+            const csvData = await readCsvContent(ownerId, project.fileName);
             if (csvData && csvData.length > 0 && Object.keys(csvData[0]).includes(x) && Object.keys(csvData[0]).includes(y)) {
 
-                const existingChart = await chartModel.findOne({projectId, title, ownerId: userId});
+                const existingChart = await chartModel.findOne({projectId, title, ownerId});
 
                 if (existingChart) {
                     const updatedChart = await chartModel.findOneAndUpdate(
-                        {projectId, title, ownerId: userId},
+                        {projectId, title, ownerId},
                         {
                             $set: {
                                 chartType: chartType,
@@ -155,12 +154,14 @@ const createChart = async (userId, projectId, title, x, y, chartType = "Line", i
                 } else {
                     const newChartEntry = new chartModel({
                         projectId: projectId,
-                        ownerId: userId,
+                        ownerId,
                         title: title || "untitled",
                         chartType: chartType,
                         x: x,
                         y: y,
-                        isLocked: isLocked
+                        isLocked: isLocked,
+                        updatedBy: userId,
+                        updatedAt: Date.now()
                     });
                     const output = await newChartEntry.save();
                     return output;
@@ -177,21 +178,41 @@ const createChart = async (userId, projectId, title, x, y, chartType = "Line", i
     }
 }
 
-const getCharts = async (userId, projectId) => {
-    try {
-        console.log(userId, projectId)
-        const projObjectId = new mongoose.Types.ObjectId(projectId)
-        const project = await ProjectModel.findOne({_id: projObjectId, ownerId: userId});
-
+const getProjectOwner = async (userId, projectId, isOwner) => {
+    if (isOwner === "false") {
+        const project = await getProjectWhenNotOwner(userId, projectId)
         if (!project) {
             throw new Error('Project not found for the provided userId.');
-        } else {
-            const charts = await chartModel.find({ownerId: userId, projectId});
-            console.log(charts)
-            return charts;
         }
+        const ownerId = project.ownerId
+        return ownerId
+    } else {
+        return userId
+    }
+}
+
+const getProjectWhenNotOwner = async (userId, projectId) => {
+    let project;
+    const user = await User.findOne({username: userId});
+    if (user) {
+        const userId = user._id
+        const projectObjectId = new mongoose.Types.ObjectId(projectId)
+        project = await ProjectModel.findOne({_id: projectObjectId, users: userId.toString()});
+    }
+    return project
+}
+const getCharts = async (userId, projectId, isOwner = false) => {
+    try {
+        let ownerId = await getProjectOwner(userId, projectId, isOwner)
+        const projObjectId = new mongoose.Types.ObjectId(projectId)
+        const project = await ProjectModel.findOne({_id: projObjectId, ownerId});
+        if (!project) {
+            throw new Error('Project not found for the provided userId.');
+        }
+        const charts = await chartModel.find({ownerId, projectId});
+        return charts;
     } catch (error) {
-        console.error('Error fetching CSV file:', error);
+        console.error('Error fetching Charts:', error);
         throw error;
     }
 };

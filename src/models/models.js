@@ -19,7 +19,9 @@ const chart = new mongoose.Schema({
     chartType: String,
     x: String,
     y: String,
-    isLocked: Boolean
+    isLocked: Boolean,
+    updatedBy: String,
+    updatedAt: Date
 });
 
 const userSchema = new mongoose.Schema({
