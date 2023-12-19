@@ -36,7 +36,7 @@ app.use('/api/users/', users);
 // });
 
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Server is running on http://192.168.106.138:${port}`);
 });
 
 

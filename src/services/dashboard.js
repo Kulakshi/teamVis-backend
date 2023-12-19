@@ -179,6 +179,7 @@ const createChart = async (userId, projectId, title, x, y, chartType = "Line", i
 }
 
 const getProjectOwner = async (userId, projectId, isOwner) => {
+    console.log(userId, projectId, isOwner, isOwner === "false")
     if (isOwner === "false") {
         const project = await getProjectWhenNotOwner(userId, projectId)
         if (!project) {
