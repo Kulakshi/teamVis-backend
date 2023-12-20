@@ -64,6 +64,23 @@ const addUser = async (ownerId, projectId, userId) => {
         throw error;
     }
 };
+const getProjectUsers = async (projectId) => {
+    try {
+        const projectObjectId = new mongoose.Types.ObjectId(projectId)
+        const project = await ProjectModel.findOne({_id: projectObjectId});
+         if (project) {
+            const userIds = project.users.map((userId) => new mongoose.Types.ObjectId(userId));
+            const users = await User.find({ _id: { $in: userIds } });
+            return users
+        } else {
+            throw new Error('Project not found for the provided userId.');
+        }
+
+    } catch (error) {
+        console.error('Error fetching CSV files:', error);
+        throw error;
+    }
+};
 
 const getProjectsByUserId = async (ownerId) => {
     try {
@@ -237,5 +254,6 @@ module.exports = {
     getCsvFile,
     createChart,
     getCharts,
-    getChart
+    getChart,
+    getProjectUsers
 };
