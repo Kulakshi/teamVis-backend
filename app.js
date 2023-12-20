@@ -26,15 +26,6 @@ app.use('/api/users/', users);
 // addDummyData()
 
 
-// const ydoc = new yjs.Doc();
-// const ymap = ydoc.getMap()
-// ymap.set('keyA', 'valueA')
-// const provider = new WebsocketProvider({ server }, ydoc);
-// // const provider = new WebsocketProvider('example-room', ydoc);
-// app.get('/yjs', (req, res) => {
-//   res.send(yjs.encodeStateAsUpdate(ydoc));
-// });
-
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
