@@ -217,6 +217,16 @@ const getCharts = async (userId, projectId, isOwner = false) => {
         throw error;
     }
 };
+const getChart = async (chartId) => {
+    try {
+        const _id = new mongoose.Types.ObjectId(chartId)
+        const charts = await chartModel.findOne({_id});
+        return charts;
+    } catch (error) {
+        console.error('Error fetching Charts:', error);
+        throw error;
+    }
+};
 
 
 module.exports = {
@@ -226,5 +236,6 @@ module.exports = {
     getProjectsByUserId,
     getCsvFile,
     createChart,
-    getCharts
+    getCharts,
+    getChart
 };

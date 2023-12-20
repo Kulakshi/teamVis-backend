@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {getProjectsByUserId, getCsvFile, createNewProject,
-    uploadCSV, createChart, getCharts, addUser} = require('../services/dashboard');
+    uploadCSV, createChart, getCharts, getChart, addUser} = require('../services/dashboard');
 const {ProjectModel} = require("../models/models");
 
 router.post('/new_project', uploadCSV.single('csvFile'), async (req, res) => {
@@ -47,13 +47,23 @@ router.post('/save_chart', async (req, res) => {
     }
 });
 
-
 router.get('/get_charts', async (req, res) => {
     const {userId, projectId, isOwner} = req.query;
 
     try {
         const charts = await getCharts(userId, projectId, isOwner);
         res.status(200).json({charts});
+    } catch (error) {
+        res.status(500).json({error: 'Internal Server Error'});
+    }
+});
+
+router.get('/get_chart', async (req, res) => {
+    const {chartId} = req.query;
+
+    try {
+        const chart = await getChart(chartId);
+        res.status(200).json({chart});
     } catch (error) {
         res.status(500).json({error: 'Internal Server Error'});
     }
